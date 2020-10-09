@@ -28,7 +28,7 @@ class QueueCounter {
   shiftToQueue() {
     this.queueNumber.shift();
     this.queueName.shift();
-    return `Next queue : ${this.queueNumber[0]}`;
+    return `Next queue number : ${this.queueNumber[0]}`;
   }
 }
 
@@ -104,7 +104,7 @@ class Customer {
       teller.nameServed === this.name &&
       teller.queueNumberServed === this.queueNumber
     ) {
-      return `${this.name} balance : Rp${this.moneyInAccount},00`;
+      return `${this.name}'s balance : Rp${this.moneyInAccount},00`;
     } else {
       return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
     }
@@ -190,13 +190,28 @@ let Citra = new Teller("Citra");
 let Jack = new Customer("Jack", 10000000, 250000);
 let Jill = new Customer("Jill", 5000000, 300000);
 
-console.log(Yoga.register(QC, Jack));
-console.log(Yoga.register(QC, Jill));
-console.log(Yoga.register(QC, Jill));
-console.log(Citra.callQueue(QC));
+console.log(Yoga.register(QC, Jack)); // Adding Jack to Queue
+// Queue 1 : Jack
+console.log(Yoga.register(QC, Jill)); // Adding Jill to Queue
+// Queue 2 : Jill
+console.log(Yoga.register(QC, Jill)); // Jill already have a queue number.
+console.log(Citra.callQueue(QC)); // Calling next Queue!
+// Serving queue number 1 : Jack
+// Next queue number : 2
+console.log(Jack.checkBalance(Citra)); // Jack's balance : Rp250000,00
+console.log(Jack.deposit(Citra, 12000000)); // Deposit rejected! Jack don't have enough cash.
+console.log(Jack.deposit(Citra, 1000000)); // Jack deposited Rp1000000,00. Thank you for your transaction.
+console.log(Jack.withdraw(Citra, 3000000)); // Withdraw rejected! Jack don't have enough money in account.
+console.log(Jack.transfer(Citra, 500000, Jill)); // Jack transfer Rp500000,00 to Jill. Thank you for your transaction.
+console.log(Jack.finishTransaction(Citra)); // Citra : Transaction with Jack finished. Thank you for trusting us.
+console.log(Citra.callQueue(QC)); // Calling next Queue!
+// Serving queue number 2 : Jill
+// Next queue number : undefined
+console.log(Jill.checkBalance(Citra)); // Jill's balance : Rp800000,00
+console.log(Jill.withdraw(Citra, 200000)); // Jill withdraw Rp200000,00. Thank you for your transaction.
+
+// Test - Failed transaction if not served by any teller.
 console.log(Jack.checkBalance(Citra));
-console.log(Jack.deposit(Citra, 12000000));
-console.log(Jack.deposit(Citra, 1000000));
-console.log(Jack.withdraw(Citra, 3000000));
-console.log(Jack.transfer(Citra, 500000, Jill));
-// console.log(Jack.finishTransaction(Citra));
+console.log(Jack.deposit(Citra, 100000));
+console.log(Jack.withdraw(Citra, 100000));
+console.log(Jack.transfer(Citra, 50000, Jill));
