@@ -40,43 +40,41 @@ class BankStaff {
 }
 
 class Security extends BankStaff {
-  constructor(name, position = "Security") {
-    super(name, position);
+  constructor(name) {
+    super(name, "Security");
   }
 
   // Security helped Customer to add them into queue
   register(QC, customer) {
-    if (customer.queueNumber === null) {
+    if (!customer.queueNumber) {
       console.log(`Adding ${customer.name} to Queue`);
+
       return QC.addToQueue(customer);
-    } else {
-      return `${customer.name} already have a queue number.`;
-    }
+    } 
+    
+    return `${customer.name} already have a queue number.`;
   }
 }
 
 class Teller extends BankStaff {
-  constructor(
-    name,
-    position = "Teller",
-    serveStatus = false,
-    queueNumberServed = null,
-    nameServed = null
-  ) {
-    super(name, position);
-    this.serveStatus = serveStatus;
-    this.queueNumberServed = queueNumberServed;
-    this.nameServed = nameServed;
+  constructor(name) {
+    super(name, "Teller");
+    this.serveStatus = false;
+    this.queueNumberServed = null;
+    this.nameServed = null;
   }
 
   // Teller call next customer in queue if teller available and serve no one
   callQueue(QC) {
-    if (this.serveStatus === false) {
-      if (this.queueNumberServed === null && this.nameServed === null) {
+    if (!this.serveStatus) {
+      if (!this.queueNumberServed && !this.nameServed) {
         console.log(`Calling next Queue!`);
+
         // Serve next customer
         return this.serve(QC, QC.getNextQueueName());
       }
+    
+    return `${this.name} is not serving.`;
     }
   }
 
@@ -86,93 +84,89 @@ class Teller extends BankStaff {
     this.queueNumberServed = parseFloat(QC.queueNumber[0]);
     this.nameServed = customer;
     console.log(`Serving queue number ${this.queueNumberServed} : ${customer}`);
+
     return QC.shiftToQueue();
   }
 }
 
 class Customer {
-  constructor(name, cashOwned, moneyInAccount, queueNumber = null) {
+  constructor(name, cashOwned, moneyInAccount) {
     this.name = name;
     this.cashOwned = cashOwned;
     this.moneyInAccount = moneyInAccount;
-    this.queueNumber = queueNumber;
+    this.queueNumber = null;
+  }
+
+  // Check if customer is being served by teller before do any transactions
+  checkServed(teller){
+    if(teller.nameServed === this.name && teller.queueNumberServed === this.queueNumber){
+      return true;
+    }
+
+    return false;
   }
 
   // Check balance - can only be done if customer served by teller
   checkBalance(teller) {
-    if (
-      teller.nameServed === this.name &&
-      teller.queueNumberServed === this.queueNumber
-    ) {
+    if (this.checkServed(teller)) {
       return `${this.name}'s balance : Rp${this.moneyInAccount},00`;
-    } else {
-      return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
     }
+    
+    return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
   }
 
   // Deposit - can only be done if customer served by teller
   deposit(teller, ammount) {
-    if (
-      teller.nameServed === this.name &&
-      teller.queueNumberServed === this.queueNumber
-    ) {
+    if (this.checkServed(teller)) {
       if (ammount <= this.cashOwned) {
         this.moneyInAccount += ammount;
         this.cashOwned -= ammount;
 
         return `${this.name} deposited Rp${ammount},00. Thank you for your transaction.`;
-      } else {
-        return `Deposit rejected! ${this.name} don't have enough cash.`;
       }
-    } else {
-      return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
-    }
+      
+      return `Deposit rejected! ${this.name} don't have enough cash.`;
+      }
+
+    return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
   }
 
   // Withdraw - can only be done if customer served by teller
   withdraw(teller, ammount) {
-    if (
-      teller.nameServed === this.name &&
-      teller.queueNumberServed === this.queueNumber
-    ) {
+    if (this.checkServed(teller)) {
       if (ammount <= this.moneyInAccount) {
         this.moneyInAccount -= ammount;
         this.cashOwned += ammount;
 
         return `${this.name} withdraw Rp${ammount},00. Thank you for your transaction.`;
-      } else {
-        return `Withdraw rejected! ${this.name} don't have enough money in account.`;
       }
-    } else {
-      return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
-    }
+      
+      return `Withdraw rejected! ${this.name} don't have enough money in account.`;
+      }
+    
+    return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
   }
 
   // Transfer - can only be done if customer served by teller
   transfer(teller, ammount, destination) {
-    if (
-      teller.nameServed === this.name &&
-      teller.queueNumberServed === this.queueNumber
-    ) {
+    if (this.checkServed(teller)) {
       if (ammount <= this.moneyInAccount) {
         this.moneyInAccount -= ammount;
         destination.moneyInAccount += ammount;
 
         return `${this.name} transfer Rp${ammount},00 to ${destination.name}. Thank you for your transaction.`;
-      } else {
-        return `Transfer rejected! ${this.name} don't have enough money in account.`;
       }
-    } else {
-      return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
-    }
+      
+      return `Transfer rejected! ${this.name} don't have enough money in account.`;
+      }
+    
+    return `${this.name} is not served by any teller yet! Please take queue number or please wait if you already have queue number.`;
   }
+
 
   // End transaction with teller
   finishTransaction(teller) {
-    if (
-      teller.nameServed === this.name &&
-      teller.queueNumberServed === this.queueNumber
-    ) {
+    if (this.checkServed(teller)) {
       this.queueNumber = null;
       teller.serveStatus = false;
       teller.nameServed = null;
